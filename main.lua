@@ -4,7 +4,7 @@ local font = love.graphics.newFont('VCR_OSD_MONO.ttf', 60)
 love.graphics.setFont(font)
 
 local config = {
-    canvas = {
+    texture = {
         w = 128,
         h = 128,
     },
@@ -20,7 +20,7 @@ local config = {
         { x = 103, y = 81 },
         { x = 18,  y = 93 },
         { x = 78,  y = 105 },
-        { x = 45,  y = 125 },
+        { x = 45,  y = 120 },
     },
 
     snowflake = 'snowflake.png',  -- snowflake sprite
@@ -31,19 +31,26 @@ local config = {
 }
 
 local snowflake = love.graphics.newImage(config.snowflake)
-
-local canvas = love.graphics.newCanvas(config.canvas.w, config.canvas.h)
-    canvas:setWrap("repeat")
-
-local innerBatch = love.graphics.newSpriteBatch(snowflake)
-local outerBatch = love.graphics.newSpriteBatch(canvas)
+local texture = love.graphics.newCanvas(config.texture.w, config.texture.h)
+    texture:setWrap('repeat')
 
 local screenW, screenH = love.window.getMode()
 local textW, textH = font:getWidth(config.text), font:getHeight(config.text)
 local textX, textY = (screenW - textW) / 2, (screenH - textH) / 2
 
+local canvas = love.graphics.newCanvas(config.texture.w, config.texture.h)
+    canvas:setWrap('repeat')
+local outerBatch = love.graphics.newSpriteBatch(canvas)
+
 local function init ()
-    local q = love.graphics.newQuad(0, 0, screenW, screenH, canvas)
+    -- Draw snowflakes with the coordinates specified in the config table above
+    love.graphics.setCanvas(texture)
+    for _, c in ipairs(config.coordinates) do
+        love.graphics.draw(snowflake, c.x, c.y)
+    end
+    love.graphics.setCanvas()
+
+    local q = love.graphics.newQuad(0, 0, screenW, screenH, config.texture.w, config.texture.h)
 
     for i = 1, config.layers do
         outerBatch:add(q, 0, 0, 0, i * config.scale, i * config.scale)
@@ -60,25 +67,22 @@ end
 function love.update (dt)
     step = step + config.speed * 0.03
     if step >= 1 then
-        y = (y + 1) % config.canvas.h
+        y = (y + 1) % config.texture.h
         step = step % 1
     end
 end
 
+local quad = love.graphics.newQuad(0, 0, config.texture.w, config.texture.h, texture)
+
 function love.draw ()
     love.graphics.print(love.timer.getFPS(), 0, 0)
     love.graphics.print(config.text, textX, textY)
+
+    quad:setViewport(0, -y, config.texture.w, config.texture.h, config.texture.w, config.texture.h)
+
     love.graphics.setCanvas(canvas)
         love.graphics.clear()
-        innerBatch:clear()
-
-        for _, c in ipairs(config.coordinates) do
-            innerBatch:add(c.x, c.y + y)
-        end
-
-        love.graphics.draw(innerBatch)
-        love.graphics.draw(innerBatch, 0, -config.canvas.h)
-        love.graphics.draw(innerBatch, 0, -2 * config.canvas.h)
+        love.graphics.draw(texture, quad)
     love.graphics.setCanvas()
 
     love.graphics.draw(outerBatch)
