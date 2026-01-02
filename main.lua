@@ -26,7 +26,7 @@ local config = {
     snowflake = 'snowflake.png',  -- snowflake sprite
     scale     = 1.7,              -- scale step between layers
     layers    = 5,                -- number of layers with different scales of the snowflakes 
-    speed     = 20,               -- falling speed
+    speed     = 30,               -- falling speed
     text      = 'Hello, World !', -- text to place at the center of the screen
 }
 
@@ -58,7 +58,7 @@ function love.load ()
 end
 
 function love.update (dt)
-    step = step + config.speed * dt
+    step = step + config.speed * 0.03
     if step >= 1 then
         y = (y + 1) % config.canvas.h
         step = step % 1
@@ -66,6 +66,7 @@ function love.update (dt)
 end
 
 function love.draw ()
+    love.graphics.print(love.timer.getFPS(), 0, 0)
     love.graphics.print(config.text, textX, textY)
     love.graphics.setCanvas(canvas)
         love.graphics.clear()
@@ -77,7 +78,14 @@ function love.draw ()
 
         love.graphics.draw(innerBatch)
         love.graphics.draw(innerBatch, 0, -config.canvas.h)
+        love.graphics.draw(innerBatch, 0, -2 * config.canvas.h)
     love.graphics.setCanvas()
 
     love.graphics.draw(outerBatch)
+end
+
+function love.keypressed (key)
+    if key == 'q' then
+        love.event.push('quit')
+    end
 end
