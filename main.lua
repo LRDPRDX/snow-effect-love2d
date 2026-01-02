@@ -53,7 +53,8 @@ local function init ()
     local q = love.graphics.newQuad(0, 0, screenW, screenH, config.texture.w, config.texture.h)
 
     for i = 1, config.layers do
-        outerBatch:add(q, 0, 0, 0, i * config.scale, i * config.scale)
+        -- -screenW / 2 in order to eliminate the pattern at the (0, 0) coordinate otherwise
+        outerBatch:add(q, -screenW / 2, 0, 0, i * config.scale, i * config.scale)
     end
 end
 
