@@ -28,7 +28,37 @@ local config = {
     layers    = 5,                -- number of layers with different scales of the snowflakes 
     speed     = 50,               -- falling speed
     text      = 'Hello, World !', -- text to place at the center of the screen (default)
-    showFPS   = true,             -- display the current FPS at the upper left corner
+    show      = {
+        info = true, -- display the current FPS at the upper left corner
+        text = true, -- display the text at the center of the screen
+    },
+}
+
+local keys = {
+    ['q'] = {
+        description = 'Quit',
+        action = function () love.event.push('quit') end,
+    },
+
+    ['up'] = {
+        description = 'Speed up',
+        action = function () config.speed = math.min(100, config.speed + 10) end,
+    },
+
+    ['down'] = {
+        description = 'Speed down',
+        action = function () config.speed = math.max(10, config.speed - 10) end,
+    },
+
+    ['f'] = {
+        description = 'Toggle info',
+        action = function () config.show.info = not config.show.info end,
+    },
+
+    ['t'] = {
+        description = 'Toggle text',
+        action = function () config.show.text = not config.show.text end,
+    }
 }
 
 local snowflake = love.graphics.newImage(config.snowflake)
@@ -67,7 +97,7 @@ function love.load ()
         end
     end
 
-
+    -- Calculate the position of the text to place it right at the center of the screen
     text.w, text.h = font:getWidth(config.text), font:getHeight(config.text)
     text.x, text.y = (screenW - text.w) / 2, (screenH - text.h) / 2
 
@@ -97,11 +127,13 @@ end
 local quad = love.graphics.newQuad(0, 0, config.texture.w, config.texture.h, texture)
 
 function love.draw ()
-    if config.showFPS then
-        love.graphics.print(love.timer.getFPS(), 0, 0)
+    if config.show.info then
+        love.graphics.print(('FPS: %d, Speed: %d'):format(love.timer.getFPS(), config.speed), 0, 0)
     end
 
-    love.graphics.print(config.text, text.x, text.y)
+    if config.show.text then
+        love.graphics.print(config.text, text.x, text.y)
+    end
 
     quad:setViewport(0, -y, config.texture.w, config.texture.h, config.texture.w, config.texture.h)
 
@@ -114,13 +146,8 @@ function love.draw ()
 end
 
 function love.keypressed (key)
-    if key == 'q' then
-        love.event.push('quit')
-    elseif key == 'up' then
-        config.speed = math.min(100, config.speed + 10)
-    elseif key == 'down' then
-        config.speed = math.max(10, config.speed - 10)
-    elseif key == 'f' then
-        config.showFPS = not config.showFPS
+    local k = keys[key]
+    if k then
+        k.action()
     end
 end
